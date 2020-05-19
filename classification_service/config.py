@@ -12,7 +12,7 @@ class Config:
     if "BATCH_SIZE" in os.environ:
         BATCH_SIZE = int(os.getenv("BATCH_SIZE"))
     else:
-        BATCH_SIZE = 16
+        BATCH_SIZE = 1
 
     height = 224
     width = 224
@@ -22,13 +22,16 @@ class Config:
 
 
 class RedisConfig:
-    REDIS_HOST = "localhost"
+    REDIS_HOST = "redis"
     REDIS_PORT = "6379"
     REDIS_DB = 0
     REDIS_QUEUE_IMAGES = "queue"
     SERVER_SLEEP = 0.1
     CLIENT_SLEEP = 0.1
-    FLUSH_IMG_AFTER_CLASSIFICATION = True
+    if "FLUSH_IMG_AFTER_CLASSIFICATION" in os.environ:
+        FLUSH_IMG_AFTER_CLASSIFICATION = bool(os.getenv("BATCH_SIZE"))
+    else:
+        FLUSH_IMG_AFTER_CLASSIFICATION = True
 
 
 config = Config()

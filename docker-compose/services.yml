@@ -1,0 +1,41 @@
+version: '2.4'
+
+services:
+  redis:
+    image: redis:5.0.8
+    expose:
+      - 6379
+    restart: on-failure
+
+  classification:
+    depends_on:
+      - redis
+    build:
+      context: ..
+      target: classifier
+    environment:
+      - NUM_WORKERS
+      - HOST_PORT
+      - BATCH_SIZE
+      - FLUSH_IMG_AFTER_CLASSIFICATION
+    command: python3 ../network/classifier.py
+
+  app:
+    depends_on:
+      - redis
+      - classification
+    build:
+      context: ..
+      target: base
+    environment:
+      - NUM_WORKERS
+      - HOST_PORT
+      - BATCH_SIZE
+      - FLUSH_IMG_AFTER_CLASSIFICATION
+    expose:
+      - 8000
+    ports:
+      - ${HOST_PORT}:8000
+    command: [
+      gunicorn, -b, "0.0.0.0:8000", -w, $NUM_WORKERS, -k,  "sync", -t, "120", "main:app"
+    ]

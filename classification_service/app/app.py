@@ -2,7 +2,7 @@ from flask import Flask, request
 import redis
 
 from classification_service.config import redis_config, config
-from classification_service.app.data_structure import TaskStructure
+from classification_service.utils import TaskStructure
 
 
 app = Flask(__name__)

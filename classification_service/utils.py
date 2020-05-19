@@ -1,9 +1,10 @@
 from typing import Dict, List, Optional
+import uuid
+import struct
 
 from werkzeug.datastructures import FileStorage
 import numpy as np
-
-from classification_service.app.app_utils import create_uuid, ndarray2bytes, bytes2ndarray, filestorage2ndarray
+import cv2
 
 
 class UUID:
@@ -12,7 +13,7 @@ class UUID:
         super().__init__()
 
         if unique_id is None:
-            self.uuid = create_uuid()
+            self.uuid = str(uuid.uuid4())
         else:
             self.uuid = None
             self.from_str(unique_id)
@@ -148,3 +149,36 @@ class TaskStructure:
 
     def __str__(self):
         return str(self._structure)
+
+
+def filestorage2ndarray(file: FileStorage) -> np.ndarray:
+    filestr = file.read()
+    img_np = np.fromstring(filestr, np.uint8)
+    img_np = cv2.imdecode(img_np, cv2.IMREAD_UNCHANGED)
+    return img_np
+
+
+def ndarray2bytes(array_np: np.ndarray) -> bytes:
+    assert isinstance(array_np, np.ndarray)
+    assert array_np.dtype == np.uint8
+
+    h, w, *c = array_np.shape
+
+    if len(c) == 1:
+        c = c[0]
+    elif len(c) == 0:
+        c = 1
+    else:
+        raise ValueError("Not supported shape")
+
+    shape = struct.pack(">III", h, w, c)
+    array_bytes = shape + array_np.tobytes()
+    return array_bytes
+
+
+def bytes2ndarray(array_bytes: bytes) -> np.ndarray:
+    assert isinstance(array_bytes, bytes)
+
+    h, w, c = struct.unpack(">III", array_bytes[:12])
+    array_np = np.frombuffer(array_bytes, dtype=np.uint8, offset=12).reshape(h, w, c)
+    return array_np

@@ -10,7 +10,7 @@ import redis
 import numpy as np
 import cv2
 
-from classification_service.app.data_structure import TaskStructure
+from classification_service.utils import TaskStructure
 from classification_service.network.transforms import EvalTransforms
 from classification_service.config import config, redis_config
 
